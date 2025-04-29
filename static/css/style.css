@@ -1,0 +1,76 @@
+/* —— 重置 & 通用 —— */
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+  background-color: #f4f7fa;
+  font-family: Arial, sans-serif;
+  color: #333;
+}
+a { text-decoration:none; color:inherit; }
+button { cursor:pointer; }
+
+/* —— 网格 & 缩略 —— */
+.grid-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px,1fr));
+  gap: 10px;
+  padding: 10px;
+}
+.grid-item {
+  background:#fff; padding:10px; border-radius:18px;
+  box-shadow:0 6px 16px rgba(0,0,0,0.1);
+  transition:transform .3s; display:flex;
+  flex-direction:column; justify-content:space-between;
+  animation:fadeIn .6s;
+}
+.grid-item:hover { transform:translateY(-5px); }
+@keyframes fadeIn {
+  from {opacity:0; transform:translateY(20px);} to{opacity:1; transform:translateY(0);}
+}
+.thumb { max-width:100%; max-height:150px; object-fit:cover; margin-bottom:10px; }
+
+/* —— 按钮 & 视图切换 —— */
+.btn { padding:10px; border-radius:10px; font-size:14px; transition:opacity .3s; }
+.btn:hover{ opacity:.9; }
+.btn-sm { font-size:12px; padding:6px 8px; }
+.btn-primary { background:#007bff; color:#fff; border:1px solid #007bff; }
+.btn-success { background:#28a745; color:#fff; border:1px solid #28a745; }
+.btn-danger  { background:#dc3545; color:#fff; border:1px solid #dc3545; }
+.btn-secondary{ background:#6c757d; color:#fff; border:1px solid #6c757d; }
+.btn-outline-secondary { border:1px solid #6c757d; color:#6c757d; }
+.view-buttons { display:flex; gap:10px; margin-top:20px; }
+
+/* —— 分页 —— */
+.pagination { margin:0; }
+.page-item .page-link {
+  padding:6px 12px; border-radius:10px; margin:0 4px;
+  border:1px solid #ccc; background:#fff; color:#333;
+}
+.page-item.active .page-link { background:#007bff; color:#fff; border:1px solid #007bff; }
+.page-item.disabled .page-link { background:#e9ecef; color:#adb5bd; pointer-events:none; }
+
+/* —— 模态框 —— */
+.modal-content { border-radius:10px; }
+.modal-header, .modal-footer { background:#f7f7f7; }
+.modal-title { font-size:18px; }
+
+/* —— 响应式 —— */
+@media (max-width: 992px) {
+  .grid-container { grid-template-columns: repeat(auto-fill, minmax(180px,1fr)); }
+}
+@media (max-width: 768px) {
+  .container-fluid { padding:10px; }
+  .btn { font-size:12px; padding:6px 10px; }
+  .grid-container { grid-template-columns: repeat(auto-fill, minmax(160px,1fr)); }
+  .thumb { max-height:120px; }
+  .d-none.d-lg-table-cell { display: none !important; }
+}
+@media (max-width: 480px) {
+  .grid-container { grid-template-columns:1fr; }
+  .thumb { max-height:80px; }
+  .pagination {
+    position: fixed; bottom:10px; left:50%;
+    transform:translateX(-50%);
+    background:rgba(255,255,255,0.85); padding:8px 16px; border-radius:8px;
+    box-shadow:0 2px 8px rgba(0,0,0,0.1); z-index:1000;
+  }
+}

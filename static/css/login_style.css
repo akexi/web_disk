@@ -1,0 +1,153 @@
+/* ========== 1. 自定义属性 ========== */
+:root {
+  --bg-color: #f4f7fa;
+  --card-bg: #ffffff;
+  --text-color: #333333;
+  --subtext-color: #666666;
+  --primary-color: #007bff;
+  --primary-hover: #0056b3;
+  --danger-bg: #f8d7da;
+  --danger-border: #f5c6cb;
+  --danger-text: #721c24;
+  --border-radius: 0.625rem;      /* 10px */
+  --card-radius: 1.125rem;        /* 18px */
+  --box-shadow: 0 0.375rem 1rem rgba(0, 0, 0, 0.1);
+  --transition: 0.3s ease-in-out;
+}
+
+/* ========== 2. 全局基础 ========== */
+body {
+  background-color: var(--bg-color);
+  font-family: Arial, sans-serif;
+}
+
+/* ========== 3. 登录卡片 ========== */
+.login-card {
+  background-color: var(--card-bg);
+  border-radius: var(--card-radius);
+  box-shadow: var(--box-shadow);
+  width: 360px;
+  max-width: 100%;
+  padding: 1.5rem;
+  animation: fadeIn var(--transition);
+}
+/* 响应式：小屏时宽度自适应 */
+@media (max-width: 576px) {
+  .login-card {
+    width: 90%;
+    margin: 0 1rem;
+  }
+}
+
+/* 动画 */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(1.25rem); /* 20px */
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ========== 4. 头部 Logo & 文本 ========== */
+.logo {
+  height: 2.25rem;            /* 36px */
+  width: auto;
+  object-fit: contain;
+}
+.brand-text {
+  font-size: 1.4rem;
+  font-weight: bold;
+  color: var(--primary-color);
+}
+.subtitle {
+  text-align: center;
+  font-size: 0.95rem;
+  color: var(--subtext-color);
+  margin-bottom: 1.25rem;      /* 20px */
+}
+
+/* ========== 5. 表单控件 ========== */
+/* 建议：在 HTML 中改用 <form class="login-form"> 再限定样式 */
+.login-form .form-label {
+  font-weight: bold;
+  color: var(--text-color);
+}
+.login-form .form-control {
+  border-radius: var(--border-radius);
+  border: 1px solid #ccc;
+  padding: 0.625rem;           /* 10px */
+  transition: border-color var(--transition);
+}
+.login-form .form-control:focus {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+/* ========== 6. 按钮 ========== */
+.login-form .btn-primary {
+  background-color: var(--primary-color);
+  border-color: var(--primary-color);
+  border-radius: var(--border-radius);
+  padding: 0.625rem;
+  transition: background-color var(--transition), border-color var(--transition);
+}
+.login-form .btn-primary:hover {
+  background-color: var(--primary-hover);
+  border-color: var(--primary-hover);
+}
+
+/* ========== 7. 警告提示 ========== */
+.login-form .alert-danger {
+  background-color: var(--danger-bg);
+  border-color: var(--danger-border);
+  color: var(--danger-text);
+}
+
+/* ========== 8. 链接组 ========== */
+.link-group {
+  text-align: center;
+  margin-top: 1rem;
+}
+.link-group a {
+  margin: 0 0.3125rem;        /* 5px */
+  color: var(--primary-color);
+  font-size: 0.9rem;
+  text-decoration: none;
+  transition: color var(--transition);
+}
+.link-group a:hover {
+  text-decoration: underline;
+}
+
+/* ========== 9. 卡片底部版权 ========== */
+.card-footer {
+  text-align: center;
+  margin-top: 1.25rem;
+  font-size: 0.8rem;
+  color: #aaa;
+}
+
+/* ========== 10. 页面底部固定信息 ========== */
+.footer-login {
+  position: static;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  padding: 0.5rem 0;
+  background: transparent;
+  text-align: center;
+  font-size: 0.85rem;
+  color: #6c757d;
+}
+.footer-login a {
+  color: var(--primary-color);
+  margin: 0 0.5rem;
+  text-decoration: none;
+  transition: color var(--transition);
+}
+.footer-login a:hover {
+  text-decoration: underline;
+}

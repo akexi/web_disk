@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>登录 - Web 探玩云网盘</title>
+  <!-- Bootstrap CSS -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='bootstrap-5.3.5-dist/css/bootstrap.min.css') }}">
+  <!-- 自定义登录页样式 -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/login_style.css') }}">
+</head>
+<body class="login-page d-flex flex-column align-items-center justify-content-center min-vh-100">
+  <!-- 登录卡片，添加底部外边距以增加与下方信息的间距 -->
+  <div class="card p-4 login-card mb-4">
+    <!-- Logo 与品牌 -->
+    <div class="d-flex align-items-center justify-content-center mb-3">
+      <img src="{{ url_for('static', filename='images/logo.png') }}" alt="探玩云网盘 Logo" class="logo me-2">
+      <div class="brand-text mb-0">Web 探玩云网盘</div>
+    </div>
+    <p class="subtitle">您的私密文件空间，随时随地访问</p>
+
+    <!-- 登录表单 -->
+    <form class="login-form" method="post" action="{{ url_for('login') }}">
+      {# 若使用 Flask-WTF，请解开下面注释并提供 form 对象 #}
+      {# {{ form.csrf_token() }} #}
+      <div class="mb-3">
+        <label for="username" class="form-label">用户名</label>
+        <input type="text" id="username" name="username" class="form-control" required autocomplete="username">
+      </div>
+      <div class="mb-3">
+        <label for="password" class="form-label">密码</label>
+        <input type="password" id="password" name="password" class="form-control" required autocomplete="current-password">
+      </div>
+      <button type="submit" class="btn btn-primary w-100">登录</button>
+    </form>
+
+    <!-- 错误提示 -->
+    {% with msgs = get_flashed_messages() %}
+      {% if msgs %}
+      <div class="alert alert-danger mt-3">
+        {% for msg in msgs %}
+          <p class="mb-0">{{ msg }}</p>
+        {% endfor %}
+      </div>
+      {% endif %}
+    {% endwith %}
+
+    <!-- 链接组 -->
+    <div class="link-group">
+      <a href="{{ url_for('forgot_password') }}" aria-label="忘记密码">忘记密码？</a>
+      |
+      <a href="{{ url_for('register') }}" aria-label="注册账号">注册账号</a>
+    </div>
+
+    <!-- 卡片底部版权 -->
+    <footer class="card-footer">
+      &copy; 2025 Web 探玩云网盘. All rights reserved.
+    </footer>
+  </div>
+
+  <!-- 页面底部信息：取消固定定位，使用更大顶部外边距mt-5以增大间隔 -->
+  <footer class="footer-login mt-5" style="position: static;">
+    <p>需要帮助？请联系 <a href="mailto:xsbnltx@163.com">xsbnltx@163.com</a> 或拨打客服热线 <a href="tel:+8619969191442">+86 199-6919-1442</a></p>
+    <p>
+      <a href="/help" aria-label="帮助中心">帮助中心</a> |
+      <a href="/terms" aria-label="服务条款">服务条款</a> |
+      <a href="/privacy" aria-label="隐私政策">隐私政策</a> |
+      <a href="/faq" aria-label="常见问题">常见问题</a>
+    </p>
+    <p>&copy; 2025 探玩云网盘. 保留一切权利.</p>
+  </footer>
+</body>
+</html>

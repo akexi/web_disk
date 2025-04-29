@@ -1,0 +1,369 @@
+{% extends "base.html" %}
+{% set previewable_exts = ['png','jpg','jpeg','gif','mp4','ogg','webm','txt','mov','m4v'] %}
+{% set max_upload_size = 5 %} {# 最大上传大小，单位 GB，可根据后台配置调整 #}
+{% block content %}
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-3">
+  {% if search_query %}
+    <a href="{{ url_for('folder_view', parent_id='root', view=view_mode) }}" class="btn btn-secondary mb-2 mb-md-0">
+      🏠 返回根目录
+    </a>
+  {% else %}
+    <div class="d-flex flex-column flex-sm-row mb-2 mb-md-0 gap-2">
+      <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#newFolderModal">
+        📁 新建文件夹
+      </button>
+      <button class="btn btn-primary" id="uploadBtn">
+        📤 上传文件
+      </button>
+      <input type="file" id="fileInput" multiple style="display:none">
+      {% if breadcrumbs|length > 1 %}
+        <a href="{{ url_for('folder_view', parent_id=breadcrumbs[-2].id, view=view_mode) }}" class="btn btn-secondary">
+          🔙 返回上级目录
+        </a>
+      {% endif %}
+    </div>
+    <div class="d-flex gap-2">
+      <button class="btn btn-outline-secondary" id="listViewBtn">列表</button>
+      <button class="btn btn-outline-secondary" id="gridViewBtn">平铺</button>
+    </div>
+  {% endif %}
+</div>
+
+{% if view_mode == 'list' %}
+<div class="table-responsive">
+  <table class="table table-hover">
+    <thead>
+      <tr>
+        <th>名称</th>
+        <th class="d-none d-md-table-cell">类型</th>
+        <th class="d-none d-lg-table-cell">上传时间</th>
+        <th class="d-none d-lg-table-cell">大小</th>
+        <th class="d-none d-lg-table-cell">位置</th>
+        <th>操作</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for item in items %}
+      <tr>
+        <td>
+          {% if item.is_folder %}
+            <a href="{{ url_for('folder_view', parent_id=item.id, view=view_mode) }}">📁 {{ item.name }}</a>
+          {% else %}
+            {% set ext = item.name.split('.')[-1].lower() %}
+            {% if ext in ['png','jpg','jpeg','gif'] %}🖼️
+            {% elif ext in ['mp4','ogg','webm','mov','m4v'] %}🎞️
+            {% else %}📄{% endif %}
+            {{ item.name }}
+          {% endif %}
+        </td>
+        <td class="d-none d-md-table-cell">{{ '文件夹' if item.is_folder else '文件' }}</td>
+        <td class="d-none d-lg-table-cell">{{ item.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+        <td class="d-none d-lg-table-cell">{{ item.size }}</td>
+        <td class="d-none d-lg-table-cell">{{ item.path }}</td>
+        <td>
+          <button class="btn btn-sm btn-secondary me-1" onclick="renamePrompt({{ item.id }}, '{{ item.name }}')">✏️</button>
+          <button class="btn btn-sm btn-danger me-1" onclick="showFirstConfirm({{ item.id }}, '{{ item.name }}')">🗑️</button>
+          {% if not item.is_folder %}
+          <a href="{{ url_for('download', file_id=item.id) }}" class="btn btn-sm btn-success me-1">⬇️</a>
+          {% if ext in previewable_exts %}
+          <a href="{{ url_for('preview', file_id=item.id) }}" class="btn btn-sm btn-info" target="_blank">👁️</a>
+          {% endif %}
+          {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+<div class="grid-container">
+  {% for item in items %}
+  <div class="grid-item text-center">
+    {% if item.is_folder %}
+      <a href="{{ url_for('folder_view', parent_id=item.id, view=view_mode) }}">
+        <div>📁</div><div>{{ item.name }}</div>
+      </a>
+    {% else %}
+      {% set ext = item.name.split('.')[-1].lower() %}
+      {% if ext in ['png','jpg','jpeg','gif'] %}
+        <a href="{{ url_for('preview', file_id=item.id) }}" target="_blank">
+          <img src="{{ url_for('preview', file_id=item.id) }}" class="thumb"><div>{{ item.name }}</div>
+        </a>
+      {% elif ext in ['mp4','ogg','webm'] %}
+        <a href="{{ url_for('preview', file_id=item.id) }}" target="_blank">
+          <video class="thumb" muted><source src="{{ url_for('preview', file_id=item.id) }}"></video><div>{{ item.name }}</div>
+        </a>
+      {% else %}
+        <a href="{{ url_for('preview', file_id=item.id) }}" target="_blank">
+          <div>📄</div><div>{{ item.name }}</div>
+        </a>
+      {% endif %}
+    {% endif %}
+    <div class="mt-1 d-flex justify-content-center gap-1">
+      <button class="btn btn-sm btn-secondary" onclick="renamePrompt({{ item.id }}, '{{ item.name }}')">✏️</button>
+      <button class="btn btn-sm btn-danger" onclick="showFirstConfirm({{ item.id }}, '{{ item.name }}')">🗑️</button>
+      {% if not item.is_folder %}
+      <a href="{{ url_for('download', file_id=item.id) }}" class="btn btn-sm btn-success">⬇️</a>
+      {% endif %}
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+
+<!-- 新建文件夹 Modal -->
+<div class="modal fade" id="newFolderModal" tabindex="-1">
+  <div class="modal-dialog"><div class="modal-content">
+      <form method="post" action="{{ url_for('new_folder') }}">
+        <div class="modal-header">
+          <h5 class="modal-title">新建文件夹</h5>
+          <button class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <input name="folder_name" class="form-control" placeholder="文件夹名称" required>
+          <input type="hidden" name="parent_id" value="{{ parent_id }}">
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+          <button class="btn btn-primary">创建</button>
+        </div>
+      </form>
+  </div></div>
+</div>
+
+<!-- 上传文件 Modal -->
+<div class="modal fade" id="uploadModal" tabindex="-1" aria-labelledby="uploadModalLabel" aria-hidden="true">
+  <div class="modal-dialog"><div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="uploadModalLabel">上传文件</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="关闭"></button>
+      </div>
+      <div class="modal-body">
+        <p>最大只能上传 {{ max_upload_size }}G 的文件。</p>
+        <p>请选择要上传的文件。</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+        <button type="button" class="btn btn-primary" id="triggerFileInputBtn">去上传文件</button>
+      </div>
+  </div></div>
+</div>
+
+<!-- 上传进度 Modal -->
+<div class="modal fade" id="uploadProgressModal" tabindex="-1">
+  <div class="modal-dialog"><div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">上传进度</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div class="progress">
+          <div id="uploadProgressBar" class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 0%"></div>
+        </div>
+      </div>
+  </div></div>
+</div>
+
+<!-- 上传完成 Modal -->
+<div class="modal fade" id="uploadSuccessModal" tabindex="-1" aria-labelledby="uploadSuccessModalLabel" aria-hidden="true">
+  <div class="modal-dialog"><div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="uploadSuccessModalLabel">上传完成</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">文件上传已成功完成！</div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-primary" data-bs-dismiss="modal" onclick="location.reload()">确定</button>
+      </div>
+  </div></div>
+</div>
+
+<!-- 重命名 Modal -->
+<div class="modal fade" id="renameModal" tabindex="-1" aria-labelledby="renameModalLabel" aria-hidden="true">
+  <div class="modal-dialog"><div class="modal-content">
+    <form method="post" action="{{ url_for('rename') }}">
+      <div class="modal-header">
+        <h5 class="modal-title" id="renameModalLabel">重命名</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="关闭"></button>
+      </div>
+      <div class="modal-body">
+        <div class="mb-3">
+          <label for="renameInput" class="form-label">新名称</label>
+          <input type="text" class="form-control" id="renameInput" name="new_name" required>
+        </div>
+        <input type="hidden" id="renameFileId" name="file_id">
+        <input type="hidden" name="parent_id" value="{{ parent_id }}">
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+        <button type="submit" class="btn btn-primary">确定</button>
+      </div>
+    </form>
+  </div></div>
+</div>
+
+<!-- 第一次确认 Modal -->
+<div class="modal fade" id="firstConfirmModal" tabindex="-1" aria-labelledby="firstConfirmModalLabel" aria-hidden="true">
+  <div class="modal-dialog"><div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">删除确认</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="关闭"></button>
+      </div>
+      <div class="modal-body"><p>您确定要删除 "<span id="fileNameFirst"></span>" 吗？</p></div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+        <button type="button" class="btn btn-danger" id="toSecondConfirmBtn">确认</button>
+      </div>
+  </div></div>
+</div>
+
+<!-- 第二次确认 Modal -->
+<div class="modal fade" id="secondConfirmModal" tabindex="-1" aria-labelledby="secondConfirmModalLabel" aria-hidden="true">
+  <div class="modal-dialog"><div class="modal-content border-danger">
+      <div class="modal-header">
+        <h5 class="modal-title text-danger">⚠️ 再次确认删除</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="关闭"></button>
+      </div>
+      <div class="modal-body">
+        <p class="text-danger">此操作将 <strong>永久删除</strong> "<span id="fileNameSecond"></span>"，无法恢复！</p>
+        <p>是否继续？</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+        <button type="button" class="btn btn-danger" id="confirmFinalDeleteBtn">确认删除</button>
+      </div>
+  </div></div>
+</div>
+
+<script>
+// 重命名操作
+function renamePrompt(id, oldName) {
+  // 填充隐藏域与输入框
+  document.getElementById('renameFileId').value = id;
+  document.getElementById('renameInput').value = oldName;
+  // 弹出 Modal
+  new bootstrap.Modal(document.getElementById('renameModal')).show();
+}
+
+// 切换视图模式
+function changeView(mode) {
+  const params = new URLSearchParams(window.location.search);
+  params.set('view', mode);
+  window.location.search = params.toString();
+}
+
+// 显示上传文件 Modal
+document.getElementById('uploadBtn')?.addEventListener('click', function() {
+  new bootstrap.Modal(document.getElementById('uploadModal')).show();
+});
+
+// 触发文件选择
+document.getElementById('triggerFileInputBtn')?.addEventListener('click', function() {
+  document.getElementById('fileInput').click();
+  bootstrap.Modal.getInstance(document.getElementById('uploadModal')).hide();
+});
+
+// 文件选择并上传
+document.getElementById('fileInput')?.addEventListener('change', function () {
+  const maxTotalSize = 5 * 1024 * 1024 * 1024; // 5GB
+  const files = this.files;
+  let totalSize = 0;
+
+  for (let f of files) {
+    totalSize += f.size;
+  }
+
+  if (totalSize > maxTotalSize) {
+    alert("您选择的文件总大小超过 5GB，无法上传，请重新选择。");
+    this.value = ''; // 清空文件选择
+    return;
+  }
+
+  const fd = new FormData();
+  for (let f of files) fd.append('files', f);
+  fd.append('parent_id', '{{ parent_id }}');
+
+  // 显示上传进度条弹窗
+  new bootstrap.Modal(document.getElementById('uploadProgressModal')).show();
+
+  const xhr = new XMLHttpRequest();
+  xhr.open('POST', '{{ url_for("upload") }}');
+
+  xhr.upload.onprogress = function(e) {
+    if (e.lengthComputable) {
+      const percent = Math.floor((e.loaded / e.total) * 100);
+      document.getElementById('uploadProgressBar').style.width = percent + '%';
+    }
+  };
+
+  xhr.onload = function() {
+    if (xhr.status === 200) {
+      new bootstrap.Modal(document.getElementById('uploadProgressModal')).hide();
+      new bootstrap.Modal(document.getElementById('uploadSuccessModal')).show();
+    } else {
+      alert('上传失败，请重试！');
+    }
+  };
+
+  xhr.send(fd);
+});
+
+// 切换列表/平铺视图
+document.getElementById('listViewBtn')?.addEventListener('click', function() { changeView('list'); });
+document.getElementById('gridViewBtn')?.addEventListener('click', function() { changeView('grid'); });
+
+let deleteTargetId = null;
+let deleteTargetName = "";
+// 第一次弹窗
+function showFirstConfirm(fileId, fileName) {
+  deleteTargetId = fileId;
+  deleteTargetName = fileName;
+
+  document.getElementById('fileNameFirst').textContent = fileName;
+
+  const firstModal = new bootstrap.Modal(document.getElementById('firstConfirmModal'));
+  firstModal.show();
+
+  document.getElementById('toSecondConfirmBtn').onclick = function () {
+    firstModal.hide();
+    showSecondConfirm();
+  };
+}
+
+// 第二次弹窗
+function showSecondConfirm() {
+  document.getElementById('fileNameSecond').textContent = deleteTargetName;
+
+  const secondModal = new bootstrap.Modal(document.getElementById('secondConfirmModal'));
+  secondModal.show();
+
+  document.getElementById('confirmFinalDeleteBtn').onclick = function () {
+    deleteFile(deleteTargetId);
+  };
+}
+
+// 执行删除请求
+function deleteFile(fileId) {
+  const form = document.createElement('form');
+  form.method = 'POST';
+  form.action = '{{ url_for("delete") }}';
+
+  const fileInput = document.createElement('input');
+  fileInput.type = 'hidden';
+  fileInput.name = 'file_id';
+  fileInput.value = fileId;
+
+  const parentInput = document.createElement('input');
+  parentInput.type = 'hidden';
+  parentInput.name = 'parent_id';
+  parentInput.value = '{{ parent_id }}';
+
+  form.appendChild(fileInput);
+  form.appendChild(parentInput);
+
+  document.body.appendChild(form);
+  form.submit();
+}
+</script>
+{% endblock %}
+
