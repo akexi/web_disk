@@ -1,3 +1,0 @@
-Flask
-pymysql
-Flask-Login
