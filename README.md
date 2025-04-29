@@ -22,18 +22,21 @@ pip install Flask Flask-Login pymysql Werkzeug
 2. 执行数据库初始化脚本
 在web_disk数据库下，执行项目的根目录下的web_disk.sql 文件，以初始化数据库表结构：
 
-## 配置文件修改
-编辑 config.ini 文件，填写你的数据库连接信息：
+## 编辑 config.ini 文件，填写你的数据库等配置信息：  
+[mysql]  
+host = localhost  
+port = 3306  
+user = root  
+password = 123456  
+database = web_disk  
+;请将 your_user 和 your_password 替换为你实际的数据库用户名和密码。  
 
-[mysql]
-host = localhost
-port = 3306
-user = root
-password = 123456
-database = web_disk
+[app]  
+secret_key = your_flask_secret_key  
+upload_folder = uploads  
+;upload_folder 为文件存储目录，请使用绝对路径
 
-[app]
-secret_key = your_flask_secret_key
-upload_folder = uploads
 
-请将 your_user 和 your_password 替换为你实际的数据库用户名和密码。
+
+
+
