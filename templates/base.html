@@ -12,7 +12,10 @@
 <body>
 <nav class="navbar navbar-expand-lg navbar-light bg-light">
   <div class="container-fluid">
-    <a class="navbar-brand" href="{{ url_for('folder_view', parent_id='root') }}">📂 Web 探玩云网盘</a>
+    <a class="navbar-brand d-flex align-items-center" href="{{ url_for('folder_view', parent_id='root') }}">
+      <img src="{{ url_for('static', filename='images/logo_text.png') }}" alt="Logo" style="height: 64px; margin-right: 8px;">
+      Web 探玩云网盘
+    </a>
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav">
       <span class="navbar-toggler-icon"></span>
     </button>
